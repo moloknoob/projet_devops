@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bienvenue sur notre site</title>
+    <style>
+      /* Ajout d'un peu de style pour améliorer l'apparence */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
+      h1 {
+        color: #333;
+        margin-top: 50px;
+      }
+      p {
+        font-size: 20px;
+        color: #555;
+      }
+      .container {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin-top: 30px;
+      }
+      .image-container {
+        margin: 20px;
+      }
+      img {
+        width: 300px;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      footer {
+        margin-top: 50px;
+        font-size: 14px;
+        color: #777;
+      }
+      /* Style du bouton d'inscription en haut à droite */
+      .top-right-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .top-right-button:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Bouton d'inscription en haut à droite -->
+    <a href="{{ url_for('main.register') }}">
+      <!-- main c'est le fichier dans route, et home c'est la fonction qui renvoie la page index.html-->
+      <button class="top-right-button">Inscription</button>
+    </a>
+
+    <h1>Bienvenue sur notre site d'Anime !</h1>
+    <p>Découvrez notre collection d'images.</p>
+
+    <div class="container">
+      <div class="image-container">
+        <h2>Nanatsu no Taizai</h2>
+        <img
+          src="{{ url_for('static', filename='img/escanor.jpg') }}"
+          alt="Escanor"
+        />
+      </div>
+      <div class="image-container">
+        <h2>Berserk</h2>
+        <img
+          src="{{ url_for('static', filename='img/Guts.webp') }}"
+          alt="Guts"
+        />
+      </div>
+      <div class="image-container">
+        <h2>Hokuto no Ken</h2>
+        <img src="{{ url_for('static', filename='img/Ken.jpg') }}" alt="Ken" />
+      </div>
+    </div>
+
+    <footer>
+      <p>Site réalisé avec Flask | © 2025</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,124 @@
+<!-- app/templates/login.html -->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
+
+      .container {
+        width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 30px;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .input-group button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .input-group button:hover {
+        background-color: #0056b3;
+      }
+
+      .error-message {
+        color: red;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      .success-message {
+        color: green;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      .register-link {
+        margin-top: 20px;
+      }
+
+      .register-link a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .register-link a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Connexion</h1>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <ul>
+        {% for category, message in messages %}
+        <li class="{{ category }}-message">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %} {% endwith %}
+
+      <form method="POST">
+        <div class="input-group">
+          <input type="email" name="email" placeholder="Email" required />
+        </div>
+        <div class="input-group">
+          <input
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            required
+          />
+        </div>
+        <div class="input-group">
+          <button type="submit">Se connecter</button>
+        </div>
+      </form>
+
+      <div class="register-link">
+        <p>
+          Pas encore de compte ?
+          <a href="{{ url_for('main.home') }}">Inscris-toi ici</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
