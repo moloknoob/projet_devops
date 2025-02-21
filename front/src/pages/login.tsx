@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/register.css"; // Assurez-vous que ce fichier est bien inclus
+import "../styles/login.css";
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-
+const Login = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -18,9 +13,10 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage("");
 
     try {
-      const response = await fetch("http://localhost:5000/register", {
+      const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -29,12 +25,11 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("Inscription réussie ! Redirection en cours...");
-
-        // Redirection vers la page de connexion après 2 secondes
-        setTimeout(() => navigate("/login"), 2000);
+        setMessage("Connexion réussie !");
+        localStorage.setItem("token", data.token);
+        setTimeout(() => navigate("/product"), 2000);
       } else {
-        setMessage(data.message || "Une erreur est survenue.");
+        setMessage(data.message || "Email ou mot de passe incorrect.");
       }
     } catch (error) {
       setMessage("Erreur de connexion au serveur.");
@@ -42,53 +37,51 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
-      <div className="register-box">
-        <h1>Inscription</h1>
+    <div className="login-container">
+      <div className="login-box">
+        <h1>Connexion</h1>
+
         {message && (
-          <div
-            className={`flash-message ${
+          <p
+            className={`message ${
               message.includes("réussie") ? "success" : "error"
             }`}
           >
             {message}
-          </div>
+          </p>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="username"
-            placeholder="Nom d'utilisateur"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
+        <form onSubmit={handleSubmit} className="login-form">
           <input
             type="email"
             name="email"
-            placeholder="Email"
             value={formData.email}
             onChange={handleChange}
+            placeholder="Email"
+            className="input-field"
+            autoFocus
             required
           />
           <input
             type="password"
             name="password"
-            placeholder="Mot de passe"
             value={formData.password}
             onChange={handleChange}
+            placeholder="Mot de passe"
+            className="input-field"
             required
           />
-          <button type="submit">S'inscrire</button>
+          <button type="submit" className="submit-btn">
+            Se connecter
+          </button>
         </form>
 
         <p className="register-link">
-          Déjà un compte ? <a href="/login">Connectez-vous</a>
+          Pas encore de compte ? <a href="/register">Inscrivez-vous</a>
         </p>
       </div>
     </div>
   );
 };
 
-export default Register;
+export default Login;
