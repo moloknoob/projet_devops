@@ -14,3 +14,23 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Afficher toutes les tables
 SHOW TABLES;
+
+
+-- script.sql
+
+-- Insérer un produit seulement s'il n'existe pas déjà
+INSERT INTO products (name, description, price, stock)
+SELECT 'Escanor', 'L''humain au panthéon des races', 49.99, 20
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Escanor');
+
+INSERT INTO products (name, description, price, stock)
+SELECT 'Guts', 'Le berserker ultime', 59.99, 20
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Guts');
+
+INSERT INTO products (name, description, price, stock)
+SELECT 'Ken', 'Le survivant de l''enfer', 79.99, 20
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Ken');
+
+UPDATE users
+SET role = 'admin'
+WHERE id = 11;

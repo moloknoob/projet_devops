@@ -71,8 +71,8 @@ body {
      ========================== */
 .product-image {
   width: 100%;
-  height: 300px; /* Ajuste si besoin */
-  object-fit: cover; /* Recadre l'image pour qu'elle remplisse l'espace */
+  height: auto; /* pour conserver le ratio d’origine */
+  object-fit: cover; /* ou contain, selon le rendu désiré */
   border-radius: 8px;
 }
 
