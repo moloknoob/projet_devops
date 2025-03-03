@@ -43,6 +43,7 @@ class Product(db.Model):
     description = db.Column(Text)
     price = db.Column(Decimal(10, 2), nullable=False)
     stock = db.Column(Integer, default=0)
+    image = db.Column(db.String(255))
     created_at = db.Column(TIMESTAMP, default=db.func.current_timestamp())
 
     order_items = relationship('OrderItem', backref='product', lazy=True)
@@ -78,3 +79,24 @@ class Payment(db.Model):
     payment_status = db.Column(Enum(PaymentStatus), default=PaymentStatus.en_attente)
     created_at = db.Column(TIMESTAMP, default=db.func.current_timestamp())
 
+
+class Cart(db.Model):
+    __tablename__ = 'cart'  # Nom de la table dans la base de données
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Identifiant du panier
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Clé étrangère vers la table Users
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)  # Clé étrangère vers la table Products
+    quantity = db.Column(db.Integer, nullable=False)  # Quantité du produit dans le panier
+    created_at = db.Column(TIMESTAMP, default=db.func.current_timestamp())
+
+    # Définition des relations
+    user = db.relationship('User', backref='cart_items', lazy=True)
+    product = db.relationship('Product', backref='cart_items', lazy=True)
+
+    def __init__(self, user_id, product_id, quantity):
+        self.user_id = user_id
+        self.product_id = product_id
+        self.quantity = quantity
+
+    def __repr__(self):
+        return f"<Cart {self.id} - User {self.user_id} - Product {self.product_id}>"

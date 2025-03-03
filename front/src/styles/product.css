@@ -1,97 +1,123 @@
 /* ==========================
-   RESET de base (important)
-   ========================== */
-html,
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  background-color: #1a1a1a; /* Fond noir/gris pour toute la page */
-  box-sizing: border-box;
-}
-
-/* ==========================
-     Conteneur principal
+     Message de confirmation
      ========================== */
-.product-container {
-  width: 100%;
-  padding: 2rem 0; /* Marge en haut/bas */
-  box-sizing: border-box;
-}
-
-/* ==========================
-     Titre centré
-     ========================== */
-.product-title {
-  color: #fff;
-  font-size: 2rem;
+.message {
+  text-align: center;
+  color: #4ade80; /* Vert pour indiquer le succès */
+  font-size: 1.2rem;
   font-weight: bold;
-  text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Animation d'apparition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ==========================
-     Grille centrée à 3 colonnes
-     ========================== */
-.product-list {
-  /* On limite la largeur à 1200px (par exemple), 
-       et on centre la grille sur les grands écrans */
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px; /* Espace entre les cartes */
+             Bouton Voir ma commande
+             ========================== */
+.order-button {
+  display: block;
+  background-color: #f59e0b; /* Orange pour attirer l'attention */
+  color: #fff;
+  font-size: 1rem;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 2rem auto; /* Centré */
+  transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
-/* ==========================
-     Carte produit
-     ========================== */
-.product-card {
-  background: #2c2c2c;
-  border-radius: 12px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  padding: 1rem;
-  transition: transform 0.2s;
-}
-
-.product-card:hover {
+.order-button:hover {
+  background-color: #d97706;
   transform: scale(1.05);
 }
 
 /* ==========================
-     Image du produit
-     ========================== */
+         Liste des produits en ligne
+         ========================== */
+.product-list {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Espacement entre les produits */
+  flex-wrap: wrap;
+  align-items: stretch; /* Assure une hauteur uniforme */
+}
+
+/* ==========================
+             Carte produit (même hauteur)
+             ========================== */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #2c2c2c;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  transition: transform 0.2s ease-in-out;
+  width: 300px; /* Largeur fixe */
+}
+
+.product-card:hover {
+  transform: translateY(-5px); /* Effet au survol */
+}
+
+/* ==========================
+             Image du produit
+             ========================== */
 .product-image {
   width: 100%;
-  height: auto; /* pour conserver le ratio d’origine */
-  object-fit: cover; /* ou contain, selon le rendu désiré */
+  height: 300px;
+  object-fit: cover;
   border-radius: 8px;
 }
 
 /* ==========================
-     Bouton d'achat
-     ========================== */
-.buy-button {
-  background-color: #2563eb;
-  color: #fff;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background 0.3s;
+         Page de commande (/order)
+         ========================== */
+.order-container {
   width: 100%;
-  max-width: 200px;
+  max-width: 800px;
+  margin: 2rem auto;
+  text-align: center;
+  background: #1e1e1e;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.buy-button:hover {
-  background-color: #1d4ed8;
+.order-title {
+  font-size: 1.5rem;
+  color: #f59e0b;
+  margin-bottom: 1rem;
+}
+
+.order-list {
+  list-style: none;
+  padding: 0;
+}
+
+.order-list li {
+  font-size: 1.2rem;
+  color: white;
+  padding: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.empty-cart {
+  font-size: 1.2rem;
+  color: #999;
 }
