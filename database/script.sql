@@ -59,3 +59,6 @@ CREATE TABLE IF NOT EXISTS cart (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, -- Clé étrangère vers la table users
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE -- Clé étrangère vers la table products
 );
+
+
+ALTER TABLE cart ADD COLUMN image VARCHAR(255);

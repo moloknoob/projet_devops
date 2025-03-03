@@ -7,6 +7,8 @@ from flask_jwt_extended import (
 )
 from variables import *
 from datetime import timedelta
+from sqlalchemy.orm import joinedload
+
 
 main_routes = Blueprint('main', __name__)
 
@@ -200,5 +202,105 @@ def validate_cart():
 
         return jsonify({"message": "Commande validée avec succès", "total_price": total_price}), 201
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+
+@main_routes.route('/cart/<int:item_id>', methods=['PUT'])
+def update_quantity(item_id):
+    try:
+        data = request.get_json()
+        quantity = data.get('quantity')
+
+        if quantity is None or quantity < 1:
+            return jsonify({"error": "La quantité doit être supérieure ou égale à 1."}), 400
+
+        item = Cart.query.get(item_id)
+
+        if item is None:
+            return jsonify({"error": "L'élément n'existe pas dans le panier."}), 404
+
+        item.quantity = quantity
+        db.session.commit()
+
+        return jsonify({"message": "Quantité mise à jour."}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Supprimer un produit du panier
+@main_routes.route('/cart/<int:item_id>', methods=['DELETE'])
+def remove_from_cart(item_id):
+    try:
+        item = Cart.query.get(item_id)
+
+        if item is None:
+            return jsonify({"error": "L'élément n'existe pas dans le panier."}), 404
+
+        db.session.delete(item)
+        db.session.commit()
+
+        return jsonify({"message": "Produit supprimé du panier."}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+ 
+    
+
+
+@main_routes.route('/cart', methods=['POST'])
+def add_to_cart():
+    try:
+        data = request.get_json()
+
+        user_id = data.get('user_id')
+        product_id = data.get('product_id')
+        quantity = data.get('quantity', 1)
+
+        # Vérifier si le produit est déjà dans le panier
+        existing_item = Cart.query.filter_by(user_id=user_id, product_id=product_id).first()
+
+        if existing_item:
+            # Si le produit est déjà dans le panier, on met à jour la quantité
+            existing_item.quantity += quantity
+            db.session.commit()
+            return jsonify({"message": "Quantité mise à jour dans le panier."}), 200
+        else:
+            # Sinon, on ajoute un nouvel article au panier
+            new_item = Cart(user_id=user_id, product_id=product_id, quantity=quantity)
+            db.session.add(new_item)
+            db.session.commit()
+            return jsonify({"message": "Produit ajouté au panier."}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@main_routes.route('/cart/<int:user_id>', methods=['GET'])
+def get_cart(user_id):
+    try:
+        # Récupérer les articles du panier pour un utilisateur donné, avec les informations produit (jointure avec la table products)
+        cart_items = Cart.query.filter_by(user_id=user_id).options(joinedload(Cart.product)).all()
+
+        # Si aucun produit n'est trouvé dans le panier
+        if not cart_items:
+            return jsonify({"message": "Panier vide."}), 404
+
+        cart_data = []
+        for item in cart_items:
+            cart_data.append({
+                "id": item.id,
+                "product_id": item.product_id,
+                "product_name": item.product.name,  # Nom du produit
+                "product_description": item.product.description,  # Description du produit
+                "product_price": item.product.price,  # Prix du produit
+                "quantity": item.quantity,  # Quantité du produit
+                "total_price": item.product.price * item.quantity,  # Calcul du prix total pour ce produit
+                "image": item.product.image  # Image du produit
+            })
+
+        return jsonify(cart_data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

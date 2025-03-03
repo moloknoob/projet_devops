@@ -75,9 +75,7 @@ const OrderPage = () => {
             <div key={order.id} className="order-card">
               <p className="order-id">Commande #{order.id}</p>
               <p className="order-status">Statut: {order.status}</p>
-              <p className="order-price">
-                Total: {order.total_price.toFixed(2)} €
-              </p>
+              <p className="order-price">Total: {order.total_price} €</p>
               <p className="order-date">Date: {order.created_at}</p>
               <div className="order-items">
                 <h4>Produits :</h4>

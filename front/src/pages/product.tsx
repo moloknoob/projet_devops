@@ -210,10 +210,10 @@ const Product = () => {
       )}
 
       <button
-        className="order-button"
-        onClick={() => navigate("/order", { state: { cart } })}
+        className="card-button"
+        onClick={() => navigate("/card", { state: { cart } })}
       >
-        Voir ma commande
+        Voir mon panier
       </button>
     </div>
   );

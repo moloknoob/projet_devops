@@ -80,6 +80,9 @@ class Payment(db.Model):
     created_at = db.Column(TIMESTAMP, default=db.func.current_timestamp())
 
 
+ 
+
+
 class Cart(db.Model):
     __tablename__ = 'cart'  # Nom de la table dans la base de données
 
@@ -87,7 +90,7 @@ class Cart(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Clé étrangère vers la table Users
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)  # Clé étrangère vers la table Products
     quantity = db.Column(db.Integer, nullable=False)  # Quantité du produit dans le panier
-    created_at = db.Column(TIMESTAMP, default=db.func.current_timestamp())
+    created_at = db.Column(TIMESTAMP, default=db.func.current_timestamp())  # Date de création du panier
 
     # Définition des relations
     user = db.relationship('User', backref='cart_items', lazy=True)
