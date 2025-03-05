@@ -81,8 +81,8 @@ const OrderPage = () => {
                 <h4>Produits :</h4>
                 {order.items.map((item, index) => (
                   <p key={index}>
-                    Produit #{item.product_id} - {item.quantity} x{" "}
-                    {item.price.toFixed(2)} €
+                    Produit #{item.product_id} - {item.quantity} x {item.price}{" "}
+                    €
                   </p>
                 ))}
               </div>

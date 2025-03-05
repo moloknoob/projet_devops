@@ -24,95 +24,82 @@ const Cart = () => {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        if (!token) {
+        if (!token)
           throw new Error("Veuillez vous connecter pour voir votre panier.");
-        }
 
-        // Décoder le token pour récupérer l'ID de l'utilisateur
-        const decodedToken = JSON.parse(atob(token.split(".")[1])); // Décoder le payload du token JWT
-        const userId = decodedToken.sub; // ID de l'utilisateur dans le token
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        const userId = decodedToken.sub;
 
         const response = await fetch(`http://localhost:5000/cart/${userId}`);
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error("Erreur lors du chargement du panier.");
-        }
+
         const data = await response.json();
-        console.log(data);
-        setCart(data); // Mettre à jour l'état du panier
+        setCart(
+          data.map((item: CartItem) => ({
+            ...item,
+            total_price: item.product_price * item.quantity,
+          }))
+        );
       } catch (err: any) {
-        setError(err.message); // En cas d'erreur
+        setError(err.message);
       } finally {
-        setLoading(false); // Fin du chargement
+        setLoading(false);
       }
     };
-
     fetchCart();
   }, [token]);
 
-  // Mettre à jour la quantité du produit dans le panier
-  const updateQuantity = async (productId: number, delta: number) => {
-    const updatedCart = cart.map((item) =>
-      item.id === productId
-        ? {
-            ...item,
-            quantity: Math.max(1, item.quantity + delta), // Empêcher d'avoir une quantité inférieure à 1
-            total_price: item.product_price * (item.quantity + delta), // Calculer le nouveau prix total
-          }
-        : item
-    );
-    setCart(updatedCart); // Mettre à jour le panier localement
-
-    // Mettre à jour la quantité dans la base de données
-    const updatedItem = updatedCart.find((item) => item.id === productId);
-    if (updatedItem) {
-      await updateCartInDB(updatedItem);
+  // Supprimer un produit du panier
+  const removeFromCart = async (itemId: number) => {
+    try {
+      const response = await fetch(`http://localhost:5000/cart/${itemId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok)
+        throw new Error("Erreur lors de la suppression du produit.");
+      setCart(cart.filter((item) => item.id !== itemId));
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
-  // Supprimer un produit du panier
-  const removeFromCart = async (productId: number) => {
-    const updatedCart = cart.filter((item) => item.id !== productId);
-    setCart(updatedCart);
-
-    // Supprimer le produit dans la base de données
-    await deleteFromCartDB(productId);
-  };
-
-  // Mettre à jour le panier dans la base de données
-  const updateCartInDB = async (item: CartItem) => {
+  // Modifier la quantité d'un produit
+  const updateQuantity = async (itemId: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
     try {
-      const response = await fetch(`http://localhost:5000/cart/${item.id}`, {
+      const response = await fetch(`http://localhost:5000/cart/${itemId}`, {
         method: "PUT",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ quantity: item.quantity }),
+        body: JSON.stringify({ quantity: newQuantity }),
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour du panier.");
-      }
+      if (!response.ok)
+        throw new Error("Erreur lors de la mise à jour de la quantité.");
+      setCart(
+        cart.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                quantity: newQuantity,
+                total_price: newQuantity * item.product_price,
+              }
+            : item
+        )
+      );
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // Supprimer un produit du panier dans la base de données
-  const deleteFromCartDB = async (productId: number) => {
-    try {
-      const response = await fetch(`http://localhost:5000/cart/${productId}`, {
-        method: "DELETE",
-      });
+  // Calcul du total général sécurisé
+  const totalGeneral = cart
+    .reduce((acc, item) => acc + (item.total_price || 0), 0)
+    .toFixed(2);
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la suppression du produit du panier.");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  // Affichage du panier
   if (loading) return <p>Chargement de votre panier...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
@@ -126,39 +113,58 @@ const Cart = () => {
           {cart.map((item) => (
             <div key={item.id} className="cart-item">
               <img
-                src={`http://localhost:5000/${item.image}`} // Affichage de l'image du produit
+                src={`http://localhost:5000/${item.image}`}
                 alt={item.product_name}
                 className="cart-item-image"
               />
               <div className="cart-item-details">
                 <h3>{item.product_name}</h3>
                 <p>{item.product_description}</p>
-                <p>Prix : {item.product_price} €</p>
-                <p>Total : {item.total_price} €</p>
-                <div className="quantity-controls">
-                  <button onClick={() => updateQuantity(item.id, -1)}>-</button>
-                  <span>Quantité : {item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                <p>
+                  Prix : {item.product_price} € x {item.quantity}
+                </p>
+                <p>Total : {item.total_price.toFixed(2)} €</p>
+                <div className="cart-item-actions">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  >
+                    -
+                  </button>
+                  <span>{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  >
+                    +
+                  </button>
+                  <button onClick={() => removeFromCart(item.id)}>
+                    🗑 Supprimer
+                  </button>
                 </div>
-                <button
-                  className="remove-button"
-                  onClick={() => removeFromCart(item.id)}
-                >
-                  Supprimer
-                </button>
               </div>
             </div>
           ))}
         </div>
       )}
-
       {cart.length > 0 && (
-        <button
-          className="validate-cart-button"
-          onClick={() => navigate("/checkout")}
-        >
-          Valider mon panier
-        </button>
+        <div className="cart-actions">
+          <p>
+            <strong>Total général : {totalGeneral} €</strong>
+          </p>
+          <button
+            className="continue-shopping"
+            onClick={() => navigate("/product")}
+          >
+            Continuer vos achats
+          </button>
+          <button
+            className="validate-cart-button"
+            onClick={() =>
+              alert(`Commande validée ! Total : ${totalGeneral} €`)
+            }
+          >
+            Valider la commande
+          </button>
+        </div>
       )}
     </div>
   );

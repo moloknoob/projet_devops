@@ -95,11 +95,11 @@ class Cart(db.Model):
     # Définition des relations
     user = db.relationship('User', backref='cart_items', lazy=True)
     product = db.relationship('Product', backref='cart_items', lazy=True)
-
+    # Constructeur
     def __init__(self, user_id, product_id, quantity):
         self.user_id = user_id
         self.product_id = product_id
         self.quantity = quantity
-
+    # Méthode d'affichage pour debuguer
     def __repr__(self):
         return f"<Cart {self.id} - User {self.user_id} - Product {self.product_id}>"
