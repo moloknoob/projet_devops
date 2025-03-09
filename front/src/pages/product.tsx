@@ -59,24 +59,34 @@ const Product = () => {
       return;
     }
 
-    const newCart = [...cart, { ...product, quantity: 1 }];
-    setCart(newCart);
-    localStorage.setItem("cart", JSON.stringify(newCart));
-    setMessage(`${product.name} ajouté au panier !`);
-    setTimeout(() => setMessage(""), 2000);
+    if (product.stock > 0) {
+      const newCart = [...cart, { ...product, quantity: 1 }];
+      setCart(newCart);
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      setMessage(`${product.name} ajouté au panier !`);
+      setTimeout(() => setMessage(""), 2000);
+    } else {
+      setMessage(`${product.name} est en rupture de stock.`);
+      setTimeout(() => setMessage(""), 2000);
+    }
   };
 
-  // 🔹 Modifier la quantité d'un produit dans le panier
   const updateQuantity = (productId: number, delta: number) => {
-    const updatedCart = cart.map((item) =>
-      item.id === productId
-        ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-        : item
-    );
+    const updatedCart = cart.map((item) => {
+      if (item.id === productId) {
+        const newQuantity = item.quantity + delta;
+        if (newQuantity > item.stock) {
+          setMessage(`Stock insuffisant pour ${item.name}.`);
+          setTimeout(() => setMessage(""), 2000);
+          return item;
+        }
+        return { ...item, quantity: Math.max(1, newQuantity) };
+      }
+      return item;
+    });
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
-
   // 🔹 Supprimer un produit du panier
   const removeFromCart = (productId: number) => {
     const updatedCart = cart.filter((item) => item.id !== productId);
@@ -210,8 +220,8 @@ const Product = () => {
       )}
 
       <button
-        className="card-button"
-        onClick={() => navigate("/card", { state: { cart } })}
+        className="cart-button"
+        onClick={() => navigate("/cart", { state: { cart } })}
       >
         Voir mon panier
       </button>

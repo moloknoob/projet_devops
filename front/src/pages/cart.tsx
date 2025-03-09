@@ -27,10 +27,14 @@ const Cart = () => {
         if (!token)
           throw new Error("Veuillez vous connecter pour voir votre panier.");
 
+        // Décodage du token pour récupérer l'ID utilisateur
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         const userId = decodedToken.sub;
 
-        const response = await fetch(`http://localhost:5000/cart/${userId}`);
+        const response = await fetch(`http://localhost:5000/cart/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         if (!response.ok)
           throw new Error("Erreur lors du chargement du panier.");
 
@@ -47,6 +51,7 @@ const Cart = () => {
         setLoading(false);
       }
     };
+
     fetchCart();
   }, [token]);
 
@@ -100,6 +105,7 @@ const Cart = () => {
     .reduce((acc, item) => acc + (item.total_price || 0), 0)
     .toFixed(2);
 
+  // Gestion des erreurs et du chargement
   if (loading) return <p>Chargement de votre panier...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
@@ -158,11 +164,9 @@ const Cart = () => {
           </button>
           <button
             className="validate-cart-button"
-            onClick={() =>
-              alert(`Commande validée ! Total : ${totalGeneral} €`)
-            }
+            onClick={() => navigate("/payment")}
           >
-            Valider la commande
+            Valider la commande & payer
           </button>
         </div>
       )}

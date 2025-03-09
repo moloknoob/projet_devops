@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.models import User, Product, Order, OrderItem,Cart
+from database.models import User, Product, Order, OrderItem,Cart, PaymentStatus, OrderStatus, Payment
 from database.extention import db
 from flask_jwt_extended import (
     create_access_token, jwt_required, get_jwt_identity
@@ -8,7 +8,7 @@ from flask_jwt_extended import (
 from variables import *
 from datetime import timedelta
 from sqlalchemy.orm import joinedload
-
+ 
 
 main_routes = Blueprint('main', __name__)
 
@@ -134,42 +134,7 @@ def get_all_products():
         } for p in products
     ]), HTTP_OK
 
-# 🔹 Gestion des commandes d'un utilisateur
-@main_routes.route('/order', methods=['GET', 'POST'])
-@jwt_required()
-def order():
-    user_id = get_jwt_identity()
 
-    if request.method == 'GET':
-        orders = Order.query.filter_by(user_id=user_id).all()
-        if not orders:
-            return jsonify({"message": "Aucune commande trouvée."}), HTTP_NOT_FOUND
-
-        return jsonify([
-            {
-                "id": o.id, "total_price": float(o.total_price),
-                "status": o.status.name, "created_at": o.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                "items": [{"product_id": i.product_id, "quantity": i.quantity, "price": float(i.price)} for i in o.order_items]
-            } for o in orders
-        ]), HTTP_OK
-
-    elif request.method == 'POST':
-        data = request.get_json()
-        if not data or "items" not in data:
-            return jsonify({"message": "Données invalides."}), HTTP_BAD_REQUEST
-
-        new_order = Order(user_id=user_id, total_price=0)
-        db.session.add(new_order)
-        db.session.flush()
-
-        total_price = sum(item["quantity"] * item["price"] for item in data["items"])
-        order_items = [OrderItem(order_id=new_order.id, product_id=item["product_id"], quantity=item["quantity"], price=item["price"]) for item in data["items"]]
-
-        new_order.total_price = total_price
-        db.session.add_all(order_items)
-        db.session.commit()
-
-        return jsonify({"message": "Commande créée avec succès", "order_id": new_order.id}), HTTP_CREATED
 
 @main_routes.route('/validate-cart', methods=['POST'])
 def validate_cart():
@@ -281,26 +246,107 @@ def add_to_cart():
 @main_routes.route('/cart/<int:user_id>', methods=['GET'])
 def get_cart(user_id):
     try:
-        # Récupérer les articles du panier pour un utilisateur donné, avec les informations produit (jointure avec la table products)
+        # Récupérer les articles du panier pour un utilisateur donné
         cart_items = Cart.query.filter_by(user_id=user_id).options(joinedload(Cart.product)).all()
 
-        # Si aucun produit n'est trouvé dans le panier
+        # Renvoyer une liste vide au lieu d'une erreur si le panier est vide
         if not cart_items:
-            return jsonify({"message": "Panier vide."}), 404
+            return jsonify([]), 200  
 
-        cart_data = []
-        for item in cart_items:
-            cart_data.append({
+        # Construire la réponse JSON
+        cart_data = [
+            {
                 "id": item.id,
                 "product_id": item.product_id,
-                "product_name": item.product.name,  # Nom du produit
-                "product_description": item.product.description,  # Description du produit
-                "product_price": item.product.price,  # Prix du produit
-                "quantity": item.quantity,  # Quantité du produit
-                "total_price": item.product.price * item.quantity,  # Calcul du prix total pour ce produit
-                "image": item.product.image  # Image du produit
-            })
+                "product_name": item.product.name,
+                "product_description": item.product.description,
+                "product_price": item.product.price,
+                "quantity": item.quantity,
+                "total_price": item.product.price * item.quantity,
+                "image": item.product.image
+            }
+            for item in cart_items
+        ]
 
         return jsonify(cart_data), 200
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())  # Log détaillé de l'erreur
+        return jsonify({"error": str(e)}), 500
+    
+
+
+# 🔹 Créer une commande à partir du panier
+def create_order(user_id):
+    try:
+        cart_items = Cart.query.filter_by(user_id=user_id).all()
+        if not cart_items:
+            return jsonify({"message": "Le panier est vide."}), 400
+
+        total_price = sum(item.product.price * item.quantity for item in cart_items)
+        new_order = Order(user_id=user_id, total_price=total_price, status=OrderStatus.en_cours)
+        db.session.add(new_order)
+        db.session.flush()
+
+        for item in cart_items:
+            order_item = OrderItem(order_id=new_order.id, product_id=item.product_id, quantity=item.quantity, price=item.product.price)
+            db.session.add(order_item)
+            
+            # Mise à jour du stock produit
+            product = Product.query.get(item.product_id)
+            if product.stock < item.quantity:
+                return jsonify({"message": f"Stock insuffisant pour {product.name}."}), 400
+            product.stock -= item.quantity
+            
+        db.session.commit()
+        return jsonify({"message": "Commande créée avec succès", "order_id": new_order.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# 🔹 Effectuer un paiement pour une commande
+@main_routes.route('/pay-order', methods=['POST'])
+def pay_order():
+    try:
+        data = request.get_json()
+        order_id = data.get("order_id")
+        payment_method = data.get("payment_method")
+
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({"message": "Commande non trouvée."}), 404
+        
+        if order.payment:
+            return jsonify({"message": "Commande déjà payée."}), 400
+        
+        new_payment = Payment(order_id=order.id, payment_method=payment_method, payment_status=PaymentStatus.confirme)
+        order.status = OrderStatus.paye
+        
+        db.session.add(new_payment)
+        db.session.commit()
+
+        return jsonify({"message": "Paiement effectué avec succès"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# 🔹 Récupérer l'historique des paiements d'un utilisateur
+@main_routes.route('/payments/<int:user_id>', methods=['GET'])
+def get_payments(user_id):
+    try:
+        orders = Order.query.filter_by(user_id=user_id).options(joinedload(Order.payment)).all()
+        payments = []
+        
+        for order in orders:
+            if order.payment:
+                payments.append({
+                    "order_id": order.id,
+                    "total_price": order.total_price,
+                    "payment_method": order.payment.payment_method,
+                    "payment_status": order.payment.payment_status.name,
+                    "created_at": order.payment.created_at
+                })
+        
+        return jsonify(payments), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
