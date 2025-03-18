@@ -2,7 +2,7 @@ from sqlalchemy import Integer, String, Text, Enum, TIMESTAMP, ForeignKey
 from sqlalchemy.types import DECIMAL as Decimal
 from sqlalchemy.orm import relationship
 import enum
-from database.extention import db
+from database.extension import db
 
 
 class UserRole(enum.Enum):

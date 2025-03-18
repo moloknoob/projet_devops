@@ -1,0 +1,19 @@
+services:
+  app:
+    build: ./app
+    image: devops_project
+    ports:
+      - "5000:5000" # port du front
+    volumes:
+      - db_volume:/var/lib/mysql
+    depends_on:
+      - db
+  db:
+    image: devops_db
+    build: ./db
+    hostname: molok
+    ports:
+      - "3306:3306"
+
+volumes:
+  db_volume: {}
