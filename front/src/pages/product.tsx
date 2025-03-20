@@ -170,9 +170,9 @@ const Product = () => {
               alt={product.name}
               className="product-image"
             />
-
             <h3>{product.name}</h3>
-            <p className="product-description">{product.description}</p>
+            <p className="product-description">{product.description}</p>{" "}
+            {/* Description sous le nom */}
             <p className="product-price">
               {product.price ? product.price + " €" : "Prix non disponible"}
             </p>

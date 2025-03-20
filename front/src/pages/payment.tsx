@@ -7,6 +7,7 @@ interface CartItem {
   product_name: string;
   quantity: number;
   total_price: number;
+  image: string;
 }
 
 interface Payment {
@@ -34,7 +35,7 @@ const OrderPayment: React.FC<OrderPaymentProps> = ({ userId }) => {
   useEffect(() => {
     console.log(`🔄 Chargement du panier pour userId: ${userId}...`);
 
-    fetch(`/cart/${userId}`)
+    fetch(`http://localhost:5000/cart/${userId}`)
       .then((res) => {
         console.log("✅ Réponse API panier reçue :", res);
         return res.json();
@@ -50,7 +51,7 @@ const OrderPayment: React.FC<OrderPaymentProps> = ({ userId }) => {
   const handleCreateOrder = () => {
     console.log("📝 Création de commande en cours...");
 
-    fetch("/create-order", {
+    fetch("http://localhost:5000/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId }),
@@ -85,7 +86,7 @@ const OrderPayment: React.FC<OrderPaymentProps> = ({ userId }) => {
       `💳 Paiement en cours pour la commande ${orderId} avec méthode ${paymentMethod}...`
     );
 
-    fetch("/pay-order", {
+    fetch("http://localhost:5000/pay-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -110,7 +111,7 @@ const OrderPayment: React.FC<OrderPaymentProps> = ({ userId }) => {
   useEffect(() => {
     console.log(`🔄 Chargement des paiements pour userId: ${userId}...`);
 
-    fetch(`/payments/${userId}`)
+    fetch(`http://localhost:5000/payments/${userId}`)
       .then((res) => res.json())
       .then((data: Payment[]) => {
         console.log("📜 Historique des paiements :", data);
@@ -125,6 +126,11 @@ const OrderPayment: React.FC<OrderPaymentProps> = ({ userId }) => {
       {cart.length > 0 ? (
         cart.map((item) => (
           <div key={item.id}>
+            <img
+              src={`http://localhost:5000/${item.image}`}
+              alt={item.product_name}
+              style={{ width: "50px", height: "50px", objectFit: "cover" }}
+            />
             {item.product_name} x{item.quantity} - {item.total_price}€
           </div>
         ))

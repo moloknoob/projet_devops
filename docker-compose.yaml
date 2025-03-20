@@ -1,19 +1,32 @@
 services:
   app:
-    build: ./app
+    build: .
+    container_name: devops_app
+    restart: always
     image: devops_project
     ports:
       - "5000:5000" # port du front
     volumes:
-      - db_volume:/var/lib/mysql
+      - .:/app
     depends_on:
       - db
+    environment:
+      FLASK_APP: run.py
+      FLASK_RUN_HOST: 0.0.0.0
   db:
     image: devops_db
-    build: ./db
+    container_name: mysql_container
+    restart: always # pour eviter les restart boucle inf
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: anime
+      MYSQL_USER: julien
+      MYSQL_PASSWORD: pass
     hostname: molok
     ports:
       - "3306:3306"
+    volumes:
+      - db_volume:/var/lib/mysql
 
 volumes:
   db_volume: {}

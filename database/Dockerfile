@@ -3,5 +3,5 @@ ENV MYSQL_DATABASE=anime
 ENV MYSQL_USER=julien
 ENV MYSQL_PASSWORD=pass
 ENV MYSQL_ROOT_PASSWORD=pass
-ADD script.sql /docker-entrypoint-initdb.d
+COPY script.sql /docker-entrypoint-initdb.d
 EXPOSE 3306

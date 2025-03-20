@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.models import User, Product, Order, OrderItem,Cart, PaymentStatus, OrderStatus, Payment
-from database.extention import db
+from database.extension import db
 from flask_jwt_extended import (
     create_access_token, jwt_required, get_jwt_identity
 )
@@ -350,3 +350,50 @@ def get_payments(user_id):
         return jsonify(payments), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+
+@main_routes.route('/create-order', methods=['POST'])
+def create_order_route():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"message": "User ID requis."}), HTTP_BAD_REQUEST
+
+    try:
+        # Récupérer les articles du panier pour l'utilisateur avec les infos produit
+        cart_items = Cart.query.filter_by(user_id=user_id).options(joinedload(Cart.product)).all()
+        if not cart_items:
+            return jsonify({"message": "Le panier est vide."}), 400
+
+        # Calcul du prix total en utilisant les infos du produit
+        total_price = sum(item.product.price * item.quantity for item in cart_items)
+        
+        # Créer une nouvelle commande avec le statut "en_cours"
+        new_order = Order(user_id=user_id, total_price=total_price, status=OrderStatus.en_cours)
+        db.session.add(new_order)
+        db.session.flush()  # Permet d'obtenir l'ID de la commande créée
+
+        # Pour chaque article du panier, créer un OrderItem et mettre à jour le stock du produit
+        for item in cart_items:
+            order_item = OrderItem(
+                order_id=new_order.id,
+                product_id=item.product_id,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+            db.session.add(order_item)
+            
+            # Récupérer le produit pour vérifier et mettre à jour le stock
+            product = Product.query.get(item.product_id)
+            if product.stock < item.quantity:
+                db.session.rollback()
+                return jsonify({"message": f"Stock insuffisant pour {product.name}."}), 400
+            product.stock -= item.quantity
+        
+        db.session.commit()
+        return jsonify({"message": "Commande créée avec succès", "order_id": new_order.id}), HTTP_CREATED
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), HTTP_INTERNAL_SERVER_ERROR

@@ -1,4 +1,4 @@
-DATABASE_URL = 'mysql+mysqlconnector://julien:pass@localhost:3306/anime'  # on remplacera localhost par le nom de l'host quand on passera par docker
+DATABASE_URL = 'mysql+mysqlconnector://julien:pass@molok:3306/anime'  # on remplacera localhost par le nom de l'host quand on passera par docker
 SECRET_KEY ="272763"
 
 HTTP_OK = 200  # Requête réussie

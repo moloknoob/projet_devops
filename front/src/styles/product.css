@@ -122,3 +122,12 @@
   font-size: 1.2rem;
   color: #999;
 }
+.product-description {
+  font-size: 1rem;
+  color: #d1d5db; /* Gris clair pour la description */
+  margin: 10px 0; /* Espacement entre le nom du produit et la description */
+  text-align: center;
+  max-height: none; /* Assure que la description n'est pas limitée par une hauteur maximale */
+  overflow: visible; /* Permet d'afficher tout le texte */
+  word-wrap: break-word; /* Permet au texte de se couper à la fin de la ligne */
+}
