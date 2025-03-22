@@ -77,11 +77,8 @@ WHERE id = 11;
  
  
 
-INSERT INTO products (name, description, price, stock, image) VALUES
-('Escanor', 'Le Lion de l\'Orgueil - Un guerrier surpuissant.', 49.99, 10, 'static/img/escanor.jpg'),
-('Guts', 'Le légendaire épéiste du manga Berserk.', 59.99, 8, 'static/img/Guts.webp'),
-('Ken', 'Le maître du Hokuto Shinken.', 39.99, 12, 'static/img/Ken.jpg');
--- Création de la table Cart
+
+
 
 -- Insérer les produits seulement s'ils n'existent pas déjà dans la base de données
 INSERT INTO products (name, description, price, stock, image)
