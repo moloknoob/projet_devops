@@ -3,7 +3,7 @@ services:
     build: .
     container_name: devops_app
     restart: always
-    image: devops_back
+    image: devops_app
     ports:
       - "5000:5000"
     volumes:

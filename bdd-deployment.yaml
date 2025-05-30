@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mariadb-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/mariadb"  # Chemin local sur ton nœud
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bdd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bdd
+  template:
+    metadata:
+      labels:
+        app: bdd
+    spec:
+      containers:
+        - name: bdd
+          image: moloknaab/devops_db:v1
+          imagePullPolicy: Always
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              value: root
+            - name: MARIADB_DATABASE
+              value: anime
+            - name: MARIADB_USER
+              value: julien
+            - name: MARIADB_PASSWORD
+              value: pass
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mariadb-data
+          persistentVolumeClaim:
+            claimName: mariadb-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bdd-service
+spec:
+  selector:
+    app: bdd
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP

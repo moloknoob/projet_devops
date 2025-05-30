@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mon-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mon-backend
+  template:
+    metadata:
+      labels:
+        app: mon-backend
+    spec:
+      containers:
+      - name: mon-backend
+        image: moloknaab/devops_app:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MYSQL_HOST
+          value: bdd-service
+        - name: MYSQL_DATABASE
+          value: anime
+        - name: MYSQL_USER
+          value: julien
+        - name: MYSQL_PASSWORD
+          value: pass
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mon-backend-service
+spec:
+  selector:
+    app: mon-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: NodePort
